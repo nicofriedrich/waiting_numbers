@@ -1,0 +1,103 @@
+@media screen{
+    #print_area{
+        width:210mm;
+        height: 70% !important;
+        background-color: blanchedalmond;
+        margin-left:auto; 
+        margin-right:auto;
+        overflow: scroll;
+        -webkit-box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.75);
+        -moz-box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.75);
+        box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.75);
+        padding: 5px;
+    }
+}
+
+@media print{
+    table {
+        border: solid #000 !important;
+        border-width: 1px 0 0 1px !important;
+        color: black !important;
+        font-size: 20px !important;
+    }
+    th, td {
+        border: solid #000 !important;
+        border-width: 0 1px 1px 0 !important;
+        color: black !important;
+        
+    }
+    table th{
+        color: black !important;
+        background-color: lightgray !important;
+        -webkit-print-color-adjust: exact !important; 
+    }
+    #table_to_print tr:nth-child(even) {
+        background-color: white;
+        -webkit-print-color-adjust: exact !important; 
+    }
+    #table_to_print tr:nth-child(odd) {
+        background-color: #c5c2c2;
+        -webkit-print-color-adjust: exact !important; 
+    }
+
+
+}
+
+#table_to_print {
+    margin-left:auto; 
+    margin-right:auto;
+    background-color: #474747;
+    width:100%;
+    margin: 0px auto;
+    word-wrap: normal;
+    text-align: left;
+    /* counter-reset: rowNumber; */
+
+}
+
+/* table#table_to_print tr:nth-child(1){
+    counter-increment: rowNumber;
+} */
+#table_to_print tr{
+    counter-increment: rowNumber;
+}
+#table_to_print tr:first {
+    counter-reset: rowNumber;
+}
+
+#tbod{
+    background-color: #ddd;
+    height: 500px;
+    width:100%;
+
+  
+}
+#table_to_print tr td:first-child::before {
+content: counter(rowNumber);
+    min-width: 1em;
+    margin-right: 0.5em;
+}
+.td_to_print{
+    word-wrap: break-word;
+    word-wrap: normal;
+    padding: 3px 15px;
+    /* width: auto;   */
+    border: 1px solid black;
+}
+
+#table_to_print tr:nth-child(even) {
+    background-color: white;
+}
+#table_to_print tr:nth-child(odd) {
+    background-color: #c5c2c2
+}
+ #print_thead th {
+     background-color: grey !important;
+    font-size: 15px;
+} 
+
+
+#overlay{
+    height: 100%;
+    text-align:center !important;
+}

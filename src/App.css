@@ -1,0 +1,45 @@
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.App-title {
+  text-align: center;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.next{
+  font-size: 64px;
+  font-weight: bold;
+  text-align: center;
+  animation: App-card-spin infinite 2s linear;
+}
+@keyframes App-card-spin {
+  0%   {color: black;}
+  50%   {color: red;}
+  100% { color: black; }
+}
+.currentContactID{
+  font-size: 64px;
+  font-weight: bold;
+  text-align: center;
+  color: darkgreen;
+}
+.currentContact{
+  background: #a9d68e !important;
+}
