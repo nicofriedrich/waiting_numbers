@@ -15,8 +15,8 @@ import moment from 'moment';
 //For awesome font css and icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons'
-library.add(faTrashAlt)
+import { faTrashAlt, faCheck } from '@fortawesome/free-solid-svg-icons'
+library.add(faTrashAlt,faCheck)
 /**
  * ListItem Class
  * This class handles the ListItems of each Contact
@@ -58,5 +58,24 @@ class ListItem extends Component {
       )
     }
   }
+
+  export class ListPickupItem extends Component {
+    render() {
+      var listClass = `list-item card ${this.props.view}`;
+      var style = { zIndex: 100 - this.props.index };
+      var additionalText = "";
+      ///Finaly Render
+      return (
+          <li id={this.props.id} className={listClass} style={style}>
+            <h3>{this.props.id}{this.props.display_name}</h3>
+            <button onClick={this.props.clickHandler}>
+              <FontAwesomeIcon icon="check" />
+            </button>
+          </li>
+  
+      )
+    }
+  }
+
 
   export default ListItem;

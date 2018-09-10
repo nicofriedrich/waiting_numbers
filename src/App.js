@@ -12,9 +12,11 @@ import React, { Component } from 'react';
 import logo from './cipico_logo.png';
 import reactLogo from './logo.svg';
 import error_symbol from './error_symbol.svg';
+import axios from 'axios';
 
 //Import own Objects
 import ListItem from './ListItem';
+import ListPickupItem from './ListItem';
 import CIPWebSocket from './WebSocket';
 
 
@@ -26,6 +28,7 @@ import CIPWebSocket from './WebSocket';
  */
 import FlipMove from 'react-flip-move';
 import throttle from 'lodash/throttle';
+import swal from 'sweetalert';
 
 
 /**
@@ -43,6 +46,7 @@ import './fpsHelper.min.css';
  * as ENUM
  */
 const siteMode = {
+  pickup: 6,
   idle: 0,
   ready: 1,
   busy: 2,
@@ -68,14 +72,36 @@ class App extends Component {
    */
   constructor(props) {
     super(props);
-    //Init WebSocket
-    this.socket = new CIPWebSocket(this,"ws://demo.cento.fps:4438/ws/wait_numbers",siteMode);
+    // //Init WebSocket
+    // this.socket = new CIPWebSocket(this,"ws://demo.cento.fps:4438/ws/wait_numbers/",siteMode);
     //Inital State
     this.state = {
       title: "WarteSystem",
-      mode: siteMode.idle,
-      socket: this.socket
+      mode: siteMode.pickup,
+      // socket: this.socket,
+      pickup_place:null,
+      pickup_places:[]
     };
+    axios.get("http://demo.cento.fps/sites/default/civicrm-extensions/com.fpsvisionary.essensausgabe/Ausgabe_Modul/ausgabe.php").then(function(response){
+        if(response.data.is_error == 0){
+          //handle display
+        }
+        else{
+          swal({
+            icon: "error",
+            title: "Fehler",
+            text: response.data.error_message
+          });
+        }
+      }).catch(function (error) {
+        // handle error
+        console.log(error);
+        swal({
+            icon: "error",
+            title: "Fehler",
+            text: error.message
+        });
+      });
     document.title = "CIPICO " + this.state.title;
 
   }
@@ -129,6 +155,23 @@ class App extends Component {
     });
   }
 
+  renderPickupPlaces(){
+    return this.state.pickup_places.map((aPlace, i) => {
+      return (
+        <ListPickupItem
+          key={aPlace.id}
+          view={this.state.view}
+          index={i}
+          mode={this.state.mode}
+          current={this.state.current}
+          siteMode={siteMode}
+          clickHandler={throttle(() => this.removeContact('contacts', 'removedContacts', aPlace.id), 800)}
+          {...aPlace}
+        />
+      );
+    });
+  }
+
   /**
    * render - App Rendering Function
    * Finally renders the hole app 
@@ -147,6 +190,22 @@ class App extends Component {
     var body;
     //Swich for important states
     switch (this.state.mode) {
+      case siteMode.pickup:
+        //Idle State (Website is waiting on input)
+        title = <h1>Willkommen zum Tafel WarteSystem</h1>;
+        description = <div className="wait_desc">Bitte wählen Sie zunächst die Ausgabestelle.</div>
+        body = <div className="wait_body"><img src={reactLogo} className="App-logo" alt="logo" /></div>
+        if (this.state.pickup_places.length > 0){
+          <FlipMove
+            staggerDurationBy="30"
+            duration={500}
+            enterAnimation={this.state.enterLeaveAnimation}
+            leaveAnimation={this.state.enterLeaveAnimation}
+            typeName="ul">
+            {this.renderPickupPlaces()}
+          </FlipMove>
+        }
+        break;
       case siteMode.idle:
         //Idle State (Website is waiting on input)
         title = <h1>Willkommen zum Tafel WarteSystem</h1>;
