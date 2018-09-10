@@ -43,3 +43,11 @@
 .currentContact{
   background: #a9d68e !important;
 }
+.nextUL li{
+  display: inline-block;
+  padding-right: 20px;
+
+}
+.cip_footer{
+  z-index: 101;
+}

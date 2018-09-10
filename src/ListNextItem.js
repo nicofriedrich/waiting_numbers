@@ -17,46 +17,34 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashAlt, faCheck } from '@fortawesome/free-solid-svg-icons'
 library.add(faTrashAlt,faCheck)
+
 /**
- * ListItem Class
- * This class handles the ListItems of each Contact
+ * ListNextItem Class
+ * This class handles the ListNextItem of each Contact
  * The zindex will be customized as the first Element needs to be on top of all 
  * There are some special behavoir on Next and Current Client
  * @author Nico Friedrich <n.friedrich@cipico.de>
  * @version 1.0
  * @since 1.0
- * @see ListItem
+ * @see ListNextItem
  * @see Component
  */
-class ListItem extends Component {
+class ListNextItem extends Component {
     render() {
-      var listClass = `list-item card ${this.props.view}`;
+      var listClass = `next-item`;
       var style = { zIndex: 100 - this.props.index };
-      var additionalText = "";
-      ///Next Client
-      if (this.props.index < this.props.offset) {
-        //Make the background red
-        style.background = "red";
-  
-      }
-      //This is when the client is on the cash of an employer
-      if(this.props.mode === this.props.siteMode.onCurrent && this.props.index in this.props.current){
-        //Make this green background and append the cash number
-        listClass += " currentContact";
-        additionalText += " an der Kasse:" + this.props.current[this.props.index];
+      var additionalText = ",";
+      if(this.props.index == this.props.offset-1){
+        additionalText = "";
       }
       ///Finaly Render
       return (
           <li id={this.props.id} className={listClass} style={style}>
-            <h3>{this.props.card_id}{additionalText}</h3>
-            <h5>{moment(this.props.timestamp).format('MMM Do, YYYY')}</h5>
-            <button onClick={this.props.clickHandler}>
-              <FontAwesomeIcon icon="trash-alt" />
-            </button>
+            {this.props.card_id}{additionalText}
           </li>
   
       )
     }
   }
 
-  export default ListItem;
+  export default ListNextItem;

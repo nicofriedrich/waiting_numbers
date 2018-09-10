@@ -57,14 +57,18 @@ class CIPWebSocket {
                     if (response.action === "get") {
                         //This is when we get all contact as an Array
                         //No set the new State OnData
-                        self.setState({
-                            mode: siteMode.onData, //new mode
-                            contacts: response.values, //all contacts
-                            removedContacts: [], //array of removed Contacts
-                            view: 'list', //state of view
-                            order: 'asc',//order asc
-                            sortingMethod: 'chronological', //FlipMove method
-                        });
+                        if(self.state.pickup_place in response.values && response.values[self.state.pickup_place].length > 0){
+                            self.setState({
+                                offset:response.offset,
+                                mode: siteMode.onData, //new mode
+                                contacts: response.values[self.state.pickup_place], //all contacts
+                                removedContacts: [], //array of removed Contacts
+                                view: 'list', //state of view
+                                order: 'asc',//order asc
+                                sortingMethod: 'chronological', //FlipMove method
+                            });
+                        }
+                        
                     }
                 }
                 if (response.entity === "PickupContact") {

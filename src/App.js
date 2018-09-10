@@ -13,10 +13,12 @@ import logo from './cipico_logo.png';
 import reactLogo from './logo.svg';
 import error_symbol from './error_symbol.svg';
 import axios from 'axios';
+import Sound from 'react-sound';
+import NextSound from './next_client.mp3'
 
 //Import own Objects
 import ListItem from './ListItem';
-import ListPickupItem from './ListItem';
+import ListPickupItem from './ListPickupItem';
 import CIPWebSocket from './WebSocket';
 
 
@@ -40,6 +42,7 @@ import './FlipMove.css';
 import './list_create.css';
 import './jquery-confirm.css';
 import './fpsHelper.min.css';
+import ListNextItem from './ListNextItem';
 
 /**
  * siteMode - current SITE MODE
@@ -72,39 +75,66 @@ class App extends Component {
    */
   constructor(props) {
     super(props);
-    // //Init WebSocket
-    // this.socket = new CIPWebSocket(this,"ws://demo.cento.fps:4438/ws/wait_numbers/",siteMode);
+
     //Inital State
     this.state = {
       title: "WarteSystem",
       mode: siteMode.pickup,
-      // socket: this.socket,
-      pickup_place:null,
-      pickup_places:[]
+      offset: 1,
+      removedContacts: [],
+      view: "list",
+      pickup_place: null,
+      pickup_places: []
     };
-    axios.get("http://demo.cento.fps/sites/default/civicrm-extensions/com.fpsvisionary.essensausgabe/Ausgabe_Modul/ausgabe.php").then(function(response){
-        if(response.data.is_error == 0){
-          //handle display
-        }
-        else{
-          swal({
-            icon: "error",
-            title: "Fehler",
-            text: response.data.error_message
-          });
-        }
-      }).catch(function (error) {
-        // handle error
-        console.log(error);
-        swal({
-            icon: "error",
-            title: "Fehler",
-            text: error.message
-        });
-      });
+    this.getPickupPlaces = this.getPickupPlaces.bind(this)
+    this.getPickupPlaces()
     document.title = "CIPICO " + this.state.title;
 
   }
+
+  /**
+   * getPickupPlaces - function
+   * Helper for getting all pickup places
+   */
+  getPickupPlaces(){
+    //TODO: this is dirty?
+    var self = this;
+    //Make the get call to current Tafel PickupServer
+    //TODO: this shuld be more dynamic on production
+    axios.get("http://demo.cento.fps/sites/default/civicrm-extensions/com.fpsvisionary.essensausgabe/Ausgabe_Modul/login.php?ausgabe=1").then(function (response) {
+      if (response.data.is_error == 0) {
+        //Set new State (pickup_places)
+        self.setState({
+          pickup_places: response.data.values,
+          mode:siteMode.pickup
+        });
+      }
+      else {
+        //Throw Error to the user
+        swal({
+          icon: "error",
+          title: "Fehler",
+          text: response.data.error_message
+        });
+        //Change State to error
+        self.setState({
+          mode: siteMode.error
+        });
+      }
+    }).catch(function (error) {
+      // handle error
+      swal({
+        icon: "error",
+        title: "Fehler",
+        text: error.message
+      });
+      //Change State to error
+      self.setState({
+        mode: siteMode.error
+      });
+    });
+  }
+
   /**
    * removeContact - function
    * Called when a contact should be removed
@@ -133,6 +163,24 @@ class App extends Component {
       [dest]: destContacts,
     });
   }
+
+  /**
+   * selectPickup - function
+   * Called when PickupPlace is selected
+   * @param {int} id 
+   * @param {string} name
+   */
+  selectPickup(id, name) {
+    //Init WebSocket
+    this.socket = new CIPWebSocket(this, "ws://demo.cento.fps:4438/ws/wait_numbers/", siteMode);
+    this.setState({
+      title: "WarteSystem für " + name,
+      pickup_name: name,
+      mode: siteMode.idle,
+      pickup_place: id
+    });
+  }
+
   /**
    * renderContacts - function
    * Helper for rendering the contacts in ListItems
@@ -146,16 +194,22 @@ class App extends Component {
           view={this.state.view}
           index={i}
           mode={this.state.mode}
+          offset= {this.state.offset}
           current={this.state.current}
           siteMode={siteMode}
-          clickHandler={throttle(() => this.removeContact('contacts', 'removedContacts', contact.id), 800)}
+          clickHandler={throttle(() => this.removeContact('pickup_places', 'removedContacts', contact.id), 800)}
           {...contact}
         />
       );
     });
   }
 
-  renderPickupPlaces(){
+  /**
+   * renderPickupPlaces - function
+   * Helper for rendering the contacts in ListPickupItem
+   * Pass all args for listitems like mode etc
+   */
+  renderPickupPlaces() {
     return this.state.pickup_places.map((aPlace, i) => {
       return (
         <ListPickupItem
@@ -165,10 +219,51 @@ class App extends Component {
           mode={this.state.mode}
           current={this.state.current}
           siteMode={siteMode}
-          clickHandler={throttle(() => this.removeContact('contacts', 'removedContacts', aPlace.id), 800)}
+          clickHandler={throttle(() => this.selectPickup(aPlace.contact_id, aPlace.display_name), 8000)}
           {...aPlace}
         />
       );
+    });
+  }
+
+  playSound(){
+    console.log(this.state.mode);
+    
+    if(this.state.mode == siteMode.onData){
+      return(
+        <Sound
+          url={NextSound}
+          playStatus={Sound.status.PLAYING}
+          onLoading={this.handleSongLoading}
+          onPlaying={this.handleSongPlaying}
+          onFinishedPlaying={this.handleSongFinishedPlaying}
+        />
+        );
+    }
+  }
+  /**
+   * renderNextIds - function
+   * Helper for rendering the ID's in ListPickupItem
+   * Pass all args for listitems like mode etc
+   */
+  renderNextIds() {
+    return this.state.contacts.map((contact, i) => {
+      //Only for Contacts lower then offeset
+      if (i < this.state.offset) {
+        return (
+          <ListNextItem
+            index={i}
+            key={contact.id}
+            mode={this.state.mode}
+            offset= {this.state.offset}
+            current={this.state.current}
+            siteMode={siteMode}
+            {...contact}
+          />
+
+        );
+      }
+
     });
   }
 
@@ -191,11 +286,10 @@ class App extends Component {
     //Swich for important states
     switch (this.state.mode) {
       case siteMode.pickup:
-        //Idle State (Website is waiting on input)
+        //Pickup State let the user choose a PickupPlace
         title = <h1>Willkommen zum Tafel WarteSystem</h1>;
         description = <div className="wait_desc">Bitte wählen Sie zunächst die Ausgabestelle.</div>
-        body = <div className="wait_body"><img src={reactLogo} className="App-logo" alt="logo" /></div>
-        if (this.state.pickup_places.length > 0){
+        body = <div id="shuffle" className="wait_body">
           <FlipMove
             staggerDurationBy="30"
             duration={500}
@@ -204,7 +298,8 @@ class App extends Component {
             typeName="ul">
             {this.renderPickupPlaces()}
           </FlipMove>
-        }
+        </div>
+
         break;
       case siteMode.idle:
         //Idle State (Website is waiting on input)
@@ -227,7 +322,9 @@ class App extends Component {
         if (this.state.mode === siteMode.onCurrent) {
           classes = "currentContactID"
         }
-        description = <div className={classes}>{this.state.contacts[0].card_id}</div>
+        console.log(this.state.contacts)
+        
+        description = <div className={classes}><ul className="nextUL">{this.renderNextIds()}</ul> {this.playSound()}</div>
         body = <div id="shuffle" className={this.state.view}>
           <header>
             <div className="abs-left" />
